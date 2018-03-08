@@ -9,6 +9,7 @@ contract Assurance {
         string  ville;
         string  codePostal;
         uint    dateAdhesion;
+        uint[]  accidents;
     }
 
     struct Expert {
@@ -34,8 +35,7 @@ contract Assurance {
 
     address[] private addressAdherents;                         // contient les adresses des adhérents
     address[] private addressExperts;                           // contient les adresses des experts
-    uint[] private accidentsId;                                 // contient les id des accidents (index dans le tableau)
-
+    uint[] private accidentsId;                                 // contient les id des accidents  (index dans le tableau)
 
     /*
      * Le constructeur.
@@ -43,6 +43,39 @@ contract Assurance {
      */
     function Assurance () public {
         owner = msg.sender;
+    }
+
+    /*
+     * Permet d'accéder à la liste des address (ethereum) des experts
+     */
+    function getExpertsAddress() public constant returns (address[] ) {
+       return addressExperts;
+    }
+
+    /*
+     * Permet d'accéder à la liste des address (ethereum) des adhérents
+     */
+    function getAdherentsAddress() public constant returns (address[] ) {
+       return addressAdherents;
+    }
+    /*
+     * Permet d'accéder aux accidents en cours
+     */
+    function getAccidentsId() public constant returns (uint[] ) {
+       return accidentsId;
+    }
+
+
+    //permet d'avoir le montant des fonds actuels
+    function getFund() public constant returns (uint) {
+        return this.balance;
+    }
+
+    /*
+     * Permet d'accéder à la liste des accidents (id) d'un adhérent
+     */
+    function getAdherentsAccidents(address addressAdherent) public constant returns (uint[] ) {
+       return listeAdherents[addressAdherent].accidents;
     }
 
     /*
@@ -65,10 +98,13 @@ contract Assurance {
     /*
      * Permet de s'enregistrer pour être gérer par le smart contract
      * "john.doe@yopmail.com", "50 rue du test", "", "75012","Paris"
+     * "titi@yopmail.com", "50 rue du test", "chez John", "75012","Paris"
      */
     function signUp(string mailAdherent, string adresse1, string adresse2, string codePostal, string ville) payable returns (uint) {
         // Le cout de l'assurance est de 1 Ether
         require(msg.value == 1000000000000000000);
+
+        uint[] memory accidentsAdherents;
 
         //création de l'adhérent
         Adherent memory  adherent = Adherent({
@@ -77,7 +113,8 @@ contract Assurance {
             adresse2:adresse2,
             codePostal:codePostal,
             ville:ville,
-            dateAdhesion:now
+            dateAdhesion:now,
+            accidents:accidentsAdherents
         });
 
         listeAdherents[msg.sender] = adherent;
@@ -88,6 +125,8 @@ contract Assurance {
     }
 
 
+
+
     /*
      * Permet a un assuré d'indiquer qu'il a un accident
      * "Incendie"
@@ -95,7 +134,7 @@ contract Assurance {
      */
     function declareAccident (string typeDegats)  public returns (uint) {
         //seul le propriétaire du contract peut déclarer un accident ou l'adhérent
-        require ((msg.sender == owner) || (listeAdherents[msg.sender].dateAdhesion != 0));
+        require (listeAdherents[msg.sender].dateAdhesion != 0);
         require (listeAdherents[msg.sender].dateAdhesion < (listeAdherents[msg.sender].dateAdhesion + 1 years));
 
         //Création de l'accident
@@ -109,7 +148,9 @@ contract Assurance {
             montantRemoursement:0
         });
         accidents.push(accident);
-        accidentsId.push(accidents.length);
+
+        listeAdherents[msg.sender].accidents.push(accidents.length-1);
+        accidentsId.push(accidents.length-1);
 
         return (accident.dateAccident);
     }
@@ -161,29 +202,10 @@ contract Assurance {
         }
     }
 
-    //permet d'avoir le montant des fonds actuels
-    function getFund() public constant returns (uint) {
-        return this.balance;
-    }
 
     //Permet de détruire le contrat et de renvoyer tout les fond au créateur du contrat
     function destroy() {
         require(msg.sender==owner);
         selfdestruct(msg.sender);
-    }
-
-
-
-
-    function getExpertsAddress() public constant returns (address[] ) {
-       return addressExperts;
-    }
-
-    function getAdherentsAddress() public constant returns (address[] ) {
-       return addressAdherents;
-    }
-
-    function getAccidentsId() public constant returns (uint[] ) {
-       return accidentsId;
     }
 }

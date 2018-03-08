@@ -23,18 +23,18 @@ contract Assurance {
         uint    dateValidation;
         uint    dateRefus;
         uint    montantRemoursement;
-        string  observationClient;
         string  observationExpert;
     }
 
     address public owner;                                       // le propriétaire du smart contract
+
     mapping (address => Adherent) public listeAdherents;        // la liste des adhérents
     mapping (address => Expert) public listeExperts;            // la liste des adhérents
-    address[] public addressAdherents;
-    address[] public addressExperts;
+    Accident[] public accidents;                                // contient la liste des accidents
 
-    Accident[] public accidents;
-    uint[] public accidentsId;
+    address[] private addressAdherents;                         // contient les adresses des adhérents
+    address[] private addressExperts;                           // contient les adresses des experts
+    uint[] private accidentsId;                                 // contient les id des accidents (index dans le tableau)
 
 
     /*
@@ -48,6 +48,7 @@ contract Assurance {
     /*
      * Permet de désigner un expert qui pourra valider des accidents (réserver au propriétaire du contract)
      * "0x94578E2233926ab14DB8777Bc22853a62397f89d", "forever.young@yopmail.com"
+     * "0x6D61133AfDfD30f56F0DC3f2D975A32e358986A9", "owner.expert@yopmail.com"
      */
     function ajouterExpert (address adresseExpert, string mailExpert) public returns (string, uint) {
         require(msg.sender==owner);
@@ -104,7 +105,6 @@ contract Assurance {
             dateAccident:now,
             dateValidation:0,
             dateRefus:0,
-            observationClient:"",
             observationExpert:"",
             montantRemoursement:0
         });
@@ -170,5 +170,20 @@ contract Assurance {
     function destroy() {
         require(msg.sender==owner);
         selfdestruct(msg.sender);
+    }
+
+
+
+
+    function getExpertsAddress() public constant returns (address[] ) {
+       return addressExperts;
+    }
+
+    function getAdherentsAddress() public constant returns (address[] ) {
+       return addressAdherents;
+    }
+
+    function getAccidentsId() public constant returns (uint[] ) {
+       return accidentsId;
     }
 }

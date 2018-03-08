@@ -17,10 +17,12 @@ contract Assurance {
     }
 
     struct Accident {
+        address adherentAddress;
         string  typeDegats;
         uint    dateAccident;
         uint    dateValidation;
         uint    dateRefus;
+        uint    montantRemoursement;
         string  observationClient;
         string  observationExpert;
     }
@@ -31,7 +33,7 @@ contract Assurance {
     address[] public addressAdherents;
     address[] public addressExperts;
 
-    Accident[] public accidents;
+    Accident[] private accidents;
 
 
 
@@ -88,15 +90,23 @@ contract Assurance {
     /*
      * Permet a un assuré d'indiquer qu'il a un accident
      * "Incendie"
+     * "Dégats des eaux"
      */
     function declareAccident (string typeDegats)  public returns (uint) {
+        //seul le propriétaire du contract peut déclarer un accident ou l'adhérent
+        require ((msg.sender == owner) || (listeAdherents[msg.sender].dateAdhesion != 0));
+        require (listeAdherents[msg.sender].dateAdhesion < (listeAdherents[msg.sender].dateAdhesion + 1 years));
+
+        //Création de l'accident
         Accident memory  accident = Accident({
+            adherentAddress:msg.sender,
             typeDegats:typeDegats,
             dateAccident:now,
             dateValidation:0,
             dateRefus:0,
             observationClient:"",
-            observationExpert:""
+            observationExpert:"",
+            montantRemoursement:0
         });
         accidents.push(accident);
 
@@ -107,18 +117,51 @@ contract Assurance {
     /*
      * Permet a un expert de valider un accident déclarer par un assuré
      * (ce qui provoquera le remboursement des frais déclaré par l'expert)
+     * 0, "0x6d61133afdfd30f56f0dc3f2d975a32e358986a9", "Incendie lié à une usure des conduites de gaz.", "1000000000000000000"
+     * 1, "0x6d61133afdfd30f56f0dc3f2d975a32e358986a9", "Voisin du dessus qui a souhaité faire des réparations avec du scotch.", "1000000000000000000"
      */
-    function ValiderAccident() {
+    function validerAccident(uint accidentId, address adherentAddress, string observationExpert, uint montantRemoursement) returns (string){
+        require(listeExperts[msg.sender].dateAdhesion != 0);
+        require(montantRemoursement <= this.balance);
 
+        if ((accidents[accidentId].adherentAddress != address(0x0)) && (accidents[accidentId].adherentAddress == adherentAddress))  {
+            accidents[accidentId].dateValidation = now;
+            accidents[accidentId].observationExpert = observationExpert;
+            accidents[accidentId].montantRemoursement = montantRemoursement;
+
+            if(!accidents[accidentId].adherentAddress.send(montantRemoursement)){
+                return("Validation réalisée. Paiement validé.");
+            } else {
+
+                return("Validation réalisée. Erreur lors du paiement.");
+            }
+
+        } else {
+            return("Validation non authorisé");
+        }
     }
 
+        /*
+     * Permet a un expert de valider un accident déclarer par un assuré
+     * (ce qui provoquera le remboursement des frais déclaré par l'expert)
+     * 0, "0x6d61133afdfd30f56f0dc3f2d975a32e358986a9", "Faux devis."
+     * 1, "0x6d61133afdfd30f56f0dc3f2d975a32e358986a9", "Faux devis."
+     */
+    function refuserAccident(uint accidentId, address adherentAddress, string observationExpert) returns (string){
+        require(listeExperts[msg.sender].dateAdhesion != 0);
 
+        if ((accidents[accidentId].adherentAddress != address(0x0)) && (accidents[accidentId].adherentAddress == adherentAddress))  {
+            accidents[accidentId].dateRefus = now;
+            accidents[accidentId].observationExpert = observationExpert;
 
-    function fundtransfer(address etherreceiver, uint256 amount){
-        require(msg.sender==owner);
-        if(!etherreceiver.send(amount)){
-           throw;
+            return("Refus validé.");
+        } else {
+            return("Refus non authorisé.");
         }
+    }
+
+    public function listeAccidents() return (Accident[]) {
+        return accidents;
     }
 
     //permet d'avoir le montant des fonds actuels

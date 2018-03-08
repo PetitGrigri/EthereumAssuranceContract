@@ -39,12 +39,13 @@ contract Assurance {
      * Le constructeur.
      * Ici on enregistrera le propriétaire du smart contract afin de ne pas perdre l'argent lié au contrat
      */
-    function assurance () public {
+    function Assurance () public {
         owner = msg.sender;
     }
 
     /*
      * Permet de désigner un expert qui pourra valider des accidents (réserver au propriétaire du contract)
+     * "0x94578E2233926ab14DB8777Bc22853a62397f89d", "forever.young@yopmail.com"
      */
     function ajouterExpert (address adresseExpert, string mailExpert) public returns (string, uint) {
         require(msg.sender==owner);
@@ -60,23 +61,24 @@ contract Assurance {
 
     /*
      * Permet de s'enregistrer pour être gérer par le smart contract
+     * "john.doe@yopmail.com", "50 rue du test", "", "75012","Paris"
      */
-    function signUp(string mailAdherent, string adresse1, string adresse2, string codePostal, string ville ) public returns (uint) {
+    function signUp(string mailAdherent, string adresse1, string adresse2, string codePostal, string ville) payable returns (uint) {
         // Le cout de l'assurance est de 1 Ether
         require(msg.value == 1000000000000000000);
 
         //création de l'adhérent
         Adherent memory  adherent = Adherent({
             mail:mailAdherent,
-            dateAdhesion:now,
             adresse1:adresse1,
             adresse2:adresse2,
             codePostal:codePostal,
-            ville:ville
+            ville:ville,
+            dateAdhesion:now
         });
-        listeAdherents[msg.sender] = adherent;
 
-        addressExperts.push(msg.sender);
+        listeAdherents[msg.sender] = adherent;
+        addressAdherents.push(msg.sender);
 
         //retour de l'adhérent nouvellement crée
         return (adherent.dateAdhesion);
@@ -85,6 +87,7 @@ contract Assurance {
 
     /*
      * Permet a un assuré d'indiquer qu'il a un accident
+     * "Incendie"
      */
     function declareAccident (string typeDegats)  public returns (uint) {
         Accident memory  accident = Accident({

@@ -33,8 +33,8 @@ contract Assurance {
     address[] public addressAdherents;
     address[] public addressExperts;
 
-    Accident[] private accidents;
-
+    Accident[] public accidents;
+    uint[] public accidentsId;
 
 
     /*
@@ -109,6 +109,7 @@ contract Assurance {
             montantRemoursement:0
         });
         accidents.push(accident);
+        accidentsId.push(accidents.length);
 
         return (accident.dateAccident);
     }
@@ -117,8 +118,8 @@ contract Assurance {
     /*
      * Permet a un expert de valider un accident déclarer par un assuré
      * (ce qui provoquera le remboursement des frais déclaré par l'expert)
-     * 0, "0x6d61133afdfd30f56f0dc3f2d975a32e358986a9", "Incendie lié à une usure des conduites de gaz.", "1000000000000000000"
-     * 1, "0x6d61133afdfd30f56f0dc3f2d975a32e358986a9", "Voisin du dessus qui a souhaité faire des réparations avec du scotch.", "1000000000000000000"
+     * 0, "0x6d61133afdfd30f56f0dc3f2d975a32e358986a9", "Incendie lié à une usure des conduites de gaz.", "100000000000000"
+     * 1, "0x6d61133afdfd30f56f0dc3f2d975a32e358986a9", "Voisin du dessus qui a souhaité faire des réparations avec du scotch.", "100000000000000"
      */
     function validerAccident(uint accidentId, address adherentAddress, string observationExpert, uint montantRemoursement) returns (string){
         require(listeExperts[msg.sender].dateAdhesion != 0);
@@ -158,10 +159,6 @@ contract Assurance {
         } else {
             return("Refus non authorisé.");
         }
-    }
-
-    public function listeAccidents() return (Accident[]) {
-        return accidents;
     }
 
     //permet d'avoir le montant des fonds actuels

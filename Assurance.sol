@@ -59,7 +59,7 @@ contract Assurance {
        return addressAdherents;
     }
     /*
-     * Permet d'accéder aux accidents en cours
+     * Permet d'accéder aux Id des accidents
      */
     function getAccidentsId() public constant returns (uint[] ) {
        return accidentsId;

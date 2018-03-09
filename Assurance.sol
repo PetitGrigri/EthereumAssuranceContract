@@ -27,11 +27,11 @@ contract Assurance {
         string  observationExpert;
     }
 
-    address public owner;                                       // le propriétaire du smart contract
+    address private owner;                                       // le propriétaire du smart contract
 
     mapping (address => Adherent) public listeAdherents;        // la liste des adhérents
     mapping (address => Expert) public listeExperts;            // la liste des adhérents
-    Accident[] public accidents;                                // contient la liste des accidents
+    Accident[] private accidents;                                // contient la liste des accidents
 
     address[] private addressAdherents;                         // contient les adresses des adhérents
     address[] private addressExperts;                           // contient les adresses des experts
@@ -43,6 +43,24 @@ contract Assurance {
      */
     function Assurance () public {
         owner = msg.sender;
+    }
+
+    /*
+     * Permet d'avoir le owner
+     */
+    function getOwner() public constant returns (address) {
+       return owner;
+    }
+    
+    /*
+     * Permet d'avoir l'accident
+     */
+    function getAccident(uint index) public constant returns (address, string, uint, uint, uint, uint, string) {
+        
+        Accident accident = accidents[index];
+        return (accident.adherentAddress, accident.typeDegats, accident.dateAccident, 
+                    accident.dateValidation, accident.dateRefus, 
+                    accident.montantRemoursement, accident.observationExpert);
     }
 
     /*
